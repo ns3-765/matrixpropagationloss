@@ -173,8 +173,8 @@ main (int argc, char *argv[])
   /* Simple propagation delay model */
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
   /* Friis model with standard-specific wavelength */
-  wifiChannel.AddPropagationLoss ("ns3::MatrixPropagationLossModel","DefaultLoss", DoubleValue (-50));
-  //wifiChannel.AddPropagationLoss ("ns3::MatrixPropagationLossModel::SetLoss",wifiNodes.Get (0)->GetObject<MobilityModel> (), wifiNodes.Get (1)->GetObject<MobilityModel> (), DoubleValue (50));
+  wifiChannel.AddPropagationLoss ("ns3::MatrixPropagationLossModel","DefaultLoss", DoubleValue (200));
+  wifiChannel.AddPropagationLoss ("ns3::MatrixPropagationLossModel::SetLoss(wifiNodes.Get (0)->GetObject<MobilityModel> (), wifiNodes.Get (1)->GetObject<MobilityModel> (), DoubleValue (50))");
   
   /**** Setup physical layer ****/
   DmgWifiPhyHelper wifiPhy = DmgWifiPhyHelper::Default ();
@@ -280,8 +280,8 @@ main (int argc, char *argv[])
   if (pcapTracing)
     {
       wifiPhy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
-      wifiPhy.EnablePcap ("Traces/AccessPoint", apDevice, false);
-      wifiPhy.EnablePcap ("Traces/STA", staDevices.Get (0), false);
+      wifiPhy.EnablePcap ("Traces/AccessPoint_-60", apDevice, false);
+      wifiPhy.EnablePcap ("Traces/STA_-60", staDevices.Get (0), false);
     }
 
   /* Install FlowMonitor on all nodes */
