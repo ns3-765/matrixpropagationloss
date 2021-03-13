@@ -160,25 +160,26 @@ main (int argc, char *argv[])
   mobility.Install (wifiNodes);
 
     // 3. Create propagation loss matrix
-  Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
-  lossModel->SetDefaultLoss (200); // set default loss to 200 dB (no link)
-  lossModel->SetLoss (wifiNodes.Get (0)->GetObject<MobilityModel> (), wifiNodes.Get (1)->GetObject<MobilityModel> (), 50); // set symmetric loss 0 <-> 1 to 50 dB
+  // Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
+  // lossModel->SetDefaultLoss (200); // set default loss to 200 dB (no link)
+  // lossModel->SetLoss (wifiNodes.Get (0)->GetObject<MobilityModel> (), wifiNodes.Get (1)->GetObject<MobilityModel> (), 50); // set symmetric loss 0 <-> 1 to 50 dB
   
 
-  Ptr<YansWifiChannel> wifiChannel = CreateObject <YansWifiChannel> ();
-  wifiChannel->SetPropagationLossModel (lossModel);
-  wifiChannel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
-  // /**** Set up Channel ****/
-  // DmgWifiChannelHelper wifiChannel ;
-  // /* Simple propagation delay model */
-  // wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-  // /* Friis model with standard-specific wavelength */
-  // wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel", "Frequency", DoubleValue (60.48e9));
-
+  // Ptr<YansWifiChannel> wifiChannel = CreateObject <YansWifiChannel> ();
+  // wifiChannel->SetPropagationLossModel (lossModel);
+  // wifiChannel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
+  /**** Set up Channel ****/
+  DmgWifiChannelHelper wifiChannel ;
+  /* Simple propagation delay model */
+  wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+  /* Friis model with standard-specific wavelength */
+  wifiChannel.AddPropagationLoss ("ns3::MatrixPropagationLossModel","DefaultLoss", DoubleValue (-50));
+  //wifiChannel.AddPropagationLoss ("ns3::MatrixPropagationLossModel::SetLoss",wifiNodes.Get (0)->GetObject<MobilityModel> (), wifiNodes.Get (1)->GetObject<MobilityModel> (), DoubleValue (50));
+  
   /**** Setup physical layer ****/
   DmgWifiPhyHelper wifiPhy = DmgWifiPhyHelper::Default ();
   /* Nodes will be added to the channel we set up earlier */
-  wifiPhy.SetChannel (wifiChannel.Create ();
+  wifiPhy.SetChannel (wifiChannel.Create ());
   /* All nodes transmit at 10 dBm == 10 mW, no adaptation */
   wifiPhy.Set ("TxPowerStart", DoubleValue (10.0));
   wifiPhy.Set ("TxPowerEnd", DoubleValue (10.0));
