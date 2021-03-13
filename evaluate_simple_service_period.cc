@@ -143,17 +143,42 @@ main (int argc, char *argv[])
       LogComponentEnable ("EvaluateSimpleServicePeriod", LOG_LEVEL_ALL);
     }
 
-  /**** Set up Channel ****/
-  DmgWifiChannelHelper wifiChannel ;
-  /* Simple propagation delay model */
-  wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-  /* Friis model with standard-specific wavelength */
-  wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel", "Frequency", DoubleValue (60.48e9));
+  /* Make four nodes and set them up with the phy and the mac */
+  NodeContainer wifiNodes;
+  wifiNodes.Create (2);
+  Ptr<Node> apNode = wifiNodes.Get (0);
+  Ptr<Node> staNode = wifiNodes.Get (1);  
+
+    /* Setting mobility model */
+  MobilityHelper mobility;
+  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+  positionAlloc->Add (Vector (0.0, 0.0, 0.0));   /* PCP/AP */
+  positionAlloc->Add (Vector (1.0, 0.0, 0.0));   /* DMG STA */
+
+  mobility.SetPositionAllocator (positionAlloc);
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.Install (wifiNodes);
+
+    // 3. Create propagation loss matrix
+  Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
+  lossModel->SetDefaultLoss (200); // set default loss to 200 dB (no link)
+  lossModel->SetLoss (wifiNodes.Get (0)->GetObject<MobilityModel> (), wifiNodes.Get (1)->GetObject<MobilityModel> (), 50); // set symmetric loss 0 <-> 1 to 50 dB
+  
+
+  Ptr<YansWifiChannel> wifiChannel = CreateObject <YansWifiChannel> ();
+  wifiChannel->SetPropagationLossModel (lossModel);
+  wifiChannel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
+  // /**** Set up Channel ****/
+  // DmgWifiChannelHelper wifiChannel ;
+  // /* Simple propagation delay model */
+  // wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+  // /* Friis model with standard-specific wavelength */
+  // wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel", "Frequency", DoubleValue (60.48e9));
 
   /**** Setup physical layer ****/
   DmgWifiPhyHelper wifiPhy = DmgWifiPhyHelper::Default ();
   /* Nodes will be added to the channel we set up earlier */
-  wifiPhy.SetChannel (wifiChannel.Create ());
+  wifiPhy.SetChannel (wifiChannel.Create ();
   /* All nodes transmit at 10 dBm == 10 mW, no adaptation */
   wifiPhy.Set ("TxPowerStart", DoubleValue (10.0));
   wifiPhy.Set ("TxPowerEnd", DoubleValue (10.0));
@@ -163,11 +188,7 @@ main (int argc, char *argv[])
   /* Set default algorithm for all nodes to be constant rate */
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (phyMode));
 
-  /* Make four nodes and set them up with the phy and the mac */
-  NodeContainer wifiNodes;
-  wifiNodes.Create (2);
-  Ptr<Node> apNode = wifiNodes.Get (0);
-  Ptr<Node> staNode = wifiNodes.Get (1);
+
 
   /* Add a DMG upper mac */
   DmgWifiMacHelper wifiMac = DmgWifiMacHelper::Default ();
@@ -198,15 +219,7 @@ main (int argc, char *argv[])
 
   staDevices = wifi.Install (wifiPhy, wifiMac, staNode);
 
-  /* Setting mobility model */
-  MobilityHelper mobility;
-  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-  positionAlloc->Add (Vector (0.0, 0.0, 0.0));   /* PCP/AP */
-  positionAlloc->Add (Vector (1.0, 0.0, 0.0));   /* DMG STA */
 
-  mobility.SetPositionAllocator (positionAlloc);
-  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.Install (wifiNodes);
 
   /* Internet stack*/
   InternetStackHelper stack;
